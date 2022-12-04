@@ -3,9 +3,14 @@ from rest_framework import serializers, exceptions
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    serializer用来处理数据 渲染表单
+    fields中填写你想要返回的字段 必须是在User定义的属性
+    可以继承自serializers.ModelSerializer HyperlinkedModelSerializer等
+    """
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ('url', 'username', 'first_name', 'last_name', 'email', 'password')
 
 
 class SignupSerializer(serializers.ModelSerializer):
