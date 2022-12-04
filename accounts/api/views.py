@@ -13,9 +13,12 @@ from django.contrib.auth import (
 from accounts.api.serializers import SignupSerializer, LoginSerializer
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
+    ReadOnlyModelViewSet(can't edit user) ModelViewSet
+    serializer_class用来渲染表单
+    permission_classes检测用户是否登录
     """
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
