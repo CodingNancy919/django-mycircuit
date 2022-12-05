@@ -33,6 +33,7 @@ class AccountViewSet(viewsets.ViewSet):
     def login(self, request):
         """
         默认的 username 是 admin, password 也是 admin
+        request.user is a User object stored in request, just like session and data
         """
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
@@ -43,12 +44,24 @@ class AccountViewSet(viewsets.ViewSet):
             }, status=400)
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
+        if not User.objects.filter(username=username).exists():
+            return Response({
+                "success": False,
+                "message": "User does not exists",
+            }, status=400)
+        """
+           create session key and hash for the user
+           and return the user
+        """
         user = django_authenticate(username=username, password=password)
         if not user or user.is_anonymous:
             return Response({
                 "success": False,
                 "message": "username and password does not match",
             }, status=400)
+        """
+        set the session key and user object in the request, browser will store the token in cookie
+        """
         django_login(request, user)
         return Response({
             "success": True,
@@ -59,6 +72,7 @@ class AccountViewSet(viewsets.ViewSet):
     def logout(self, request):
         """
         登出当前用户
+        flush session and reset user to anonymous user in request
         """
         django_logout(request)
         return Response({"success": True})
