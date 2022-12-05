@@ -65,7 +65,7 @@ class AccountViewSet(viewsets.ViewSet):
         django_login(request, user)
         return Response({
             "success": True,
-            "user": UserSerializer(instance=user).data,
+            "user": UserSerializer(context={'request': request}, instance=user).data,
         })
 
     @action(methods=['POST'], detail=False)
@@ -103,7 +103,7 @@ class AccountViewSet(viewsets.ViewSet):
         django_login(request, user)
         return Response({
             'success': True,
-            'user': UserSerializer(user).data,
+            'user': UserSerializer(context={'request': request}, instance=user).data,
         }, status=201)
 
     @action(methods=['GET'], detail=False)
@@ -113,5 +113,5 @@ class AccountViewSet(viewsets.ViewSet):
         """
         data = {'has_logged_in': request.user.is_authenticated}
         if request.user.is_authenticated:
-            data['user'] = UserSerializer(request.user).data
+            data['user'] = UserSerializer(context={'request': request}, instance=request.user).data
         return Response(data)

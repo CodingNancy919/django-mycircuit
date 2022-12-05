@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers, exceptions
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.HyperlinkedModelSerializer):
     """
     serializer用来处理数据 渲染表单
     fields中填写你想要返回的字段 必须是在User定义的属性
