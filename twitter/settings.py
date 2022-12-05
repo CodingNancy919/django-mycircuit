@@ -26,7 +26,7 @@ SECRET_KEY = '9*wzh*x76lbqa^x9s7l_y@kxc5glcu!u$rclq-&n!n%t2zq^w4'
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '0.0.0.0', '192.168.33.10']
-
+INTERNAL_IPS = ['10.0.2.2']
 
 # Application definition
 
@@ -37,11 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework'
+    'rest_framework',
+    'debug_toolbar',
 ]
 rest_framework = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
 }
 
 MIDDLEWARE = [
@@ -52,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'twitter.urls'

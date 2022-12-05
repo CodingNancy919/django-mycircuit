@@ -17,8 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from accounts.api.views import UserViewSet, AccountViewSet
-
-
+import debug_toolbar
 routers = routers.DefaultRouter()
 routers.register(r'api/users', UserViewSet)
 routers.register(r'api/accounts', AccountViewSet, basename='accounts')
@@ -27,4 +26,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(routers.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('__debug__/', include(debug_toolbar.urls))
 ]
