@@ -1,12 +1,12 @@
 from django.contrib import admin
-from tweets.models import Tweet
+from friendship.models import Friendship
 
 
-@admin.register(Tweet)
+@admin.register(Friendship)
 class TweetAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     list_display = (
         'created_at',
-        'user',
-        'content',
+        'from_user',
+        'to_user',
     )
