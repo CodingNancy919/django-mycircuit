@@ -32,7 +32,7 @@ class AccountViewSet(viewsets.ViewSet):
     @action(methods=['POST'], detail=False)
     def login(self, request):
         """
-        默认的 username 是 admin, password 也是 admin
+        default username is admin, password is admin
         request.user is a User object stored in request, just like session and data
         """
         serializer = LoginSerializer(data=request.data)
