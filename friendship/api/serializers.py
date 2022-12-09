@@ -41,10 +41,10 @@ class FriendshipSerializerForCreate(serializers.ModelSerializer):
             raise exceptions.ValidationError({
                 'message': 'The user you want to follow does not exist'
             })
-        if Friendship.objects.filter(from_user_id=from_user, to_user_id=to_user).exists():
-            raise exceptions.ValidationError({
-                'message': 'You have already followed this user'
-            })
+        # if Friendship.objects.filter(from_user_id=from_user, to_user_id=to_user).exists():
+        #     raise exceptions.ValidationError({
+        #         'message': 'You have already followed this user'
+        #     })
         return data
 
     def create(self, validated_data):

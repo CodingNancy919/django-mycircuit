@@ -43,6 +43,13 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             'from_user_id': request.user.id,
             'to_user_id': pk
         })
+        # 特殊判断重复 follow 的情况（比如前端猛点好多少次 follow)
+        # 静默处理，不报错，因为这类重复操作因为网络延迟的原因会比较多，没必要当做错误处理
+        if Friendship.objects.filter(from_user_id=request.user.id, to_user_id=pk).exists():
+            return Response({
+                'Success': True,
+                'duplicate': True,
+            }, status=status.HTTP_201_CREATED)
         if not serializer.is_valid():
             return Response({
                 'Success': False,
