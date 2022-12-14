@@ -17,6 +17,14 @@ class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipSerializerForCreate
     queryset = User.objects.all()
 
+
+# 另一种方法是 /api/friendship/2?action=followers /api/friendship/2?action=following
+#     def retrieve(self, request):
+#         action = request.query_params.get('action','followers')
+#         if action == 'followers':
+#             ...
+
+
     @action(methods=['GET'], detail=True, permission_classes=[AllowAny])
     def followers(self, request, pk):
         followers = Friendship.objects.filter(
@@ -35,8 +43,8 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 
     @action(methods=['POST'], detail=True, permission_classes=[IsAuthenticated])
     def follow(self, request, pk):
-        # pk 对应url api/friendship/id/follow的id
-        # 从queryset中查询pk如果不存在返回404
+        # pk 对应url api/friendship/id/follow的id detail=True会自动执行self.get_object()
+        # 从queryset.filter(pk=id)中查询pk在不在 如果不存在返回404
         self.get_object()
 
         serializer = FriendshipSerializerForCreate(data={
