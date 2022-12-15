@@ -38,18 +38,23 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # third party packages
     'rest_framework',
+    'django_filters',
     # project apps
     'accounts',
     'tweets',
     'friendship',
     'newsfeeds',
-    'comments',
+    'comments'
 ]
 
 rest_framework = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ]
 }
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -141,3 +146,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# checkout https://www.neilwithdata.com/django-sql-logging
+
+
+try:
+    from .local_settings import *
+except:
+    pass

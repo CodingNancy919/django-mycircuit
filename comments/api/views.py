@@ -21,7 +21,7 @@ class CommentViewSet(viewsets.GenericViewSet):
     # DELETE  /api/comments/1  destroy
     queryset = Comment.objects.all()
     serializer_class = CommentSerializerForCreate
-
+    filterset_fields = ('tweet_id',)
     def get_permissions(self):
         # 注意要加用 AllowAny() / IsAuthenticated() 实例化出对象
         # 而不是 AllowAny / IsAuthenticated 这样只是一个类名
@@ -30,6 +30,25 @@ class CommentViewSet(viewsets.GenericViewSet):
         if self.action in ['destroy', 'update']:
             return [IsAuthenticated(), IsObjectOwner()]
         return [AllowAny()]
+
+    def list(self, request, *args, **kwargs):
+        if 'tweet_id' not in request.query_params:
+            return Response({
+                'Success': False,
+                'message': "missing tweet_id in request",
+            }, status=status.HTTP_400_BAD_REQUEST)
+        # 使用prefetch_related可以减少DB的查询, selected_related会导致join查询
+        comments = Comment.objects.filter(tweet_id=request.query_params['tweet_id'])\
+            .prefetch_related('user')\
+            .order_by('created_at')
+        # queryset = self.get_queryset()
+        # comments = self.filter_queryset(queryset)\
+        #     .prefetch_related('user')\
+        #     .order_by('created_at')
+        serializer = CommentSerializer(comments, many=True)
+        return Response({
+            'comments': serializer.data
+        }, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         data = {
