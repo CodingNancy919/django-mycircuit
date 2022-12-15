@@ -8,7 +8,7 @@ from comments.api.serializers import (
     CommentSerializerForUpdate,
 )
 from comments.api.permissions import IsObjectOwner
-
+from utils.decorators import required_params
 
 class CommentViewSet(viewsets.GenericViewSet):
     # GenericViewSet 只实现list create update destroy方法 不实现retrieve
@@ -31,12 +31,13 @@ class CommentViewSet(viewsets.GenericViewSet):
             return [IsAuthenticated(), IsObjectOwner()]
         return [AllowAny()]
 
+    @required_params(params=['tweet_id'])
     def list(self, request, *args, **kwargs):
-        if 'tweet_id' not in request.query_params:
-            return Response({
-                'Success': False,
-                'message': "missing tweet_id in request",
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # if 'tweet_id' not in request.query_params:
+        #     return Response({
+        #         'Success': False,
+        #         'message': "missing tweet_id in request",
+        #     }, status=status.HTTP_400_BAD_REQUEST)
         # 使用prefetch_related可以减少DB的查询, selected_related会导致join查询
         comments = Comment.objects.filter(tweet_id=request.query_params['tweet_id'])\
             .prefetch_related('user')\
