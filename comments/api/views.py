@@ -16,7 +16,7 @@ class CommentViewSet(viewsets.GenericViewSet):
     # PATCH  /api/comments/1  partial_update
     # DELETE  /api/comments/1  destroy
     queryset = Comment.objects.all()
-    serializer_class = CommentSerializerForCreate()
+    serializer_class = CommentSerializerForCreate
 
     def get_permissions(self):
         if self.action == 'create':
@@ -27,7 +27,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         data = {
              'user_id': request.user.id,
              'tweet_id': request.data.get('tweet_id'),
-             'comment': request.data.get('content'),
+             'comment': request.data.get('comment'),
          }
         serializer = CommentSerializerForCreate(data=data)
         if not serializer.is_valid():
