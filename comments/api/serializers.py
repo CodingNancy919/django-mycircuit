@@ -5,6 +5,21 @@ from rest_framework import exceptions
 from accounts.api.serializers import UserSerializerForComment
 
 
+class CommentSerializer(serializers.ModelSerializer):
+    user = UserSerializerForComment()
+
+    class Meta:
+        model = Comment
+        fields = (
+            'id',
+            'user',
+            'tweet_id',
+            'comment',
+            'created_at',
+            'updated_at',
+        )
+
+
 class CommentSerializerForCreate(serializers.ModelSerializer):
     user_id = serializers.IntegerField()
     tweet_id = serializers.IntegerField()
@@ -33,16 +48,13 @@ class CommentSerializerForCreate(serializers.ModelSerializer):
         return comment
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializerForComment()
-
+class CommentSerializerForUpdate(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = (
-            'id',
-            'user',
-            'tweet_id',
-            'comment',
-            'created_at',
-            'updated_at',
-        )
+        fields = ('comment',)
+
+    def update(self, instance, validated_data):
+        instance.comment = validated_data['comment']
+        instance.save()
+        return instance
+

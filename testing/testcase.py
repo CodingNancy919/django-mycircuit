@@ -28,7 +28,7 @@ class TestCase(DjangoTestCase):
             content = 'default tweet content'
         return Tweet.objects.create(user=user, content=content)
 
-    def create_comment(self, user, tweet, content=None):
-        if content is None:
+    def create_comment(self, user, tweet, comment=None):
+        if comment is None:
             comment = 'default comment content'
-        return Comment.objects.create(user=user, tweet=tweet, comment=content)
+        return Comment.objects.create(user=user, tweet=tweet, comment=comment)
