@@ -10,6 +10,7 @@ from comments.api.serializers import (
 from comments.api.permissions import IsObjectOwner
 from utils.decorators import required_params
 
+
 class CommentViewSet(viewsets.GenericViewSet):
     # GenericViewSet 只实现list create update destroy方法 不实现retrieve
     # 用 get_permissions可以统一处理不同methods的权限，或者在action修饰符中用permission_classes来定义
@@ -22,6 +23,7 @@ class CommentViewSet(viewsets.GenericViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializerForCreate
     filterset_fields = ('tweet_id',)
+
     def get_permissions(self):
         # 注意要加用 AllowAny() / IsAuthenticated() 实例化出对象
         # 而不是 AllowAny / IsAuthenticated 这样只是一个类名

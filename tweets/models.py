@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
 from utils.time_helpers import utc_now
+from likes.models import Like
+from django.contrib.contenttypes.models import ContentType
 
 class Tweet(models.Model):
     user = models.ForeignKey(
@@ -28,6 +30,13 @@ class Tweet(models.Model):
     # def comments(self):
     #     # return Comment.objects.filter(tweet=self)
     #     return self.comment_set.all()
+
+    @property
+    def like_set(self):
+        return Like.objects.filter(
+            content_type=ContentType.objects.get_for_model(self.__class__),
+            object_id=self.id,
+        ).order_by('-created_at')
 
     def __str__(self):
         # 这是你执行 print(tweet instance)时会显示的内容
