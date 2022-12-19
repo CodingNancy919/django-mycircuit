@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from accounts.api.serializers import UserSerializerForTweet
 
 
-class LikeSerializerForCreate(ModelSerializer):
+class LikeSerializerForCreateAndCancel(ModelSerializer):
     content_type = serializers.ChoiceField(['tweet', 'comment'])
     object_id = serializers.IntegerField()
 
@@ -32,6 +32,8 @@ class LikeSerializerForCreate(ModelSerializer):
             raise ValidationError({'object_id': 'Object does not exist'})
         return data
 
+
+class LikeSerializerForCreate(LikeSerializerForCreateAndCancel):
     def create(self, validated_data):
         model_class = self._get_model_class(validated_data)
         instance, _ = Like.objects.get_or_create(
@@ -39,6 +41,19 @@ class LikeSerializerForCreate(ModelSerializer):
             content_type=ContentType.objects.get_for_model(model_class),
             object_id=validated_data['object_id'])
         return instance
+
+
+class LikeSerializerForCancel(LikeSerializerForCreateAndCancel):
+    """
+    cancel 方法是一个自定义的方法，cancel 不会被 serializer.save 调用
+    所以需要直接调用 serializer.cancel()
+    """
+    def cancel(self):
+        model_class = self._get_model_class(self.validated_data)
+        return Like.objects.filter(
+            user=self.context['request'].user,
+            content_type=ContentType.objects.get_for_model(model_class),
+            object_id=self.validated_data['object_id']).delete()
 
 
 class LikeSerializer(ModelSerializer):
