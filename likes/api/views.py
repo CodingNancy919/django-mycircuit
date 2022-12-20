@@ -38,6 +38,8 @@ class LikeViewSet(viewsets.GenericViewSet):
     @action(methods=["POST"], detail=False)
     @required_params(required_attr='data', params=['content_type', 'object_id'])
     def cancel(self, request):
+        # 这里也可以采用 delete /api/likes/的方法，但是前端需要获取object的id或instance才能发送请求，可能来不及，
+        # 所以还是采用/api/likes/cancel
         serializer = LikeSerializerForCancel(
             context={'request': request},
             data=request.data
