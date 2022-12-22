@@ -1,8 +1,8 @@
-from rest_framework.serializers import ModelSerializer
 from notifications.models import Notification
+from rest_framework import serializers
 
 
-class NotificationSerializer(ModelSerializer):
+class NotificationSerializer(serializers.ModelSerializer):
 
     # Notification具体的设计在AbstractNotification
     class Meta:
@@ -19,3 +19,17 @@ class NotificationSerializer(ModelSerializer):
             'timestamp',
             'unread',
         )
+
+
+class NotificationSerializerForUpdate(serializers.ModelSerializer):
+    unread = serializers.BooleanField()
+
+    class Meta:
+        model = Notification
+        fields = ('unread',)
+
+    def update(self, instance, validated_data):
+        instance.unread = validated_data['unread']
+        instance.save()
+        return instance
+
