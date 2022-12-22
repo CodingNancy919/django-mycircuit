@@ -4,6 +4,7 @@ from notifications.models import Notification
 
 class NotificationSerializer(ModelSerializer):
 
+    # Notification具体的设计在AbstractNotification
     class Meta:
         model = Notification
         fields = (

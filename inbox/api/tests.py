@@ -2,11 +2,10 @@ from testing.testcase import TestCase
 from notifications.models import Notification
 
 LIKE_BASE_URL = '/api/likes/'
-COMMENT_API = '/api/comments/'
-
 COMMENT_URL = '/api/comments/'
-LIKE_URL = '/api/likes/'
 NOTIFICATION_URL = '/api/notifications/'
+NOTIFICATION_UNREAD_COUNT_URL = '/api/notifications/unread-count/'
+NOTIFICATION_MARK_ALL_READ_URL = '/api/notifications/mark-all-as-read/'
 
 
 class NotificationServiceAPITest(TestCase):
@@ -28,11 +27,11 @@ class NotificationServiceAPITest(TestCase):
 
     def test_create_comment_trigger_notifications(self):
         tweet = self.create_tweet(self.user1)
-        response = self.user1_client.post(COMMENT_API, {'tweet_id': tweet.id, 'comment': '1'})
+        response = self.user1_client.post(COMMENT_URL, {'tweet_id': tweet.id, 'comment': '1'})
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Notification.objects.count(), 0)
 
-        response = self.user2_client.post(COMMENT_API, {'tweet_id': tweet.id, 'comment': '1'})
+        response = self.user2_client.post(COMMENT_URL, {'tweet_id': tweet.id, 'comment': '1'})
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Notification.objects.count(), 1)
 
@@ -40,60 +39,70 @@ class NotificationServiceAPITest(TestCase):
 class NotificationApiTests(TestCase):
 
     def setUp(self):
-        self.linghu, self.linghu_client = self.create_user_and_client('linghu')
-        self.dongxie, self.dongxie_client = self.create_user_and_client('dongxie')
-        self.linghu_tweet = self.create_tweet(self.linghu)
+        self.user1, self.user1_client = self.create_user_and_client(username='user1')
+        self.user2, self.user2_client = self.create_user_and_client(username='user2')
+        self.tweet = self.create_tweet(self.user1)
 
     def test_unread_count(self):
-        self.dongxie_client.post(LIKE_URL, {
-            'content_type': 'tweet',
-            'object_id': self.linghu_tweet.id,
-        })
+        data = {'content_type': 'tweet', 'object_id': self.tweet.id}
+        self.user2_client.post(LIKE_BASE_URL, data)
 
-        url = '/api/notifications/unread-count/'
-        response = self.linghu_client.get(url)
+        response = self.anonymous_client.get(NOTIFICATION_UNREAD_COUNT_URL)
+        self.assertEqual(response.status_code, 403)
+        response = self.user1_client.post(NOTIFICATION_UNREAD_COUNT_URL)
+        self.assertEqual(response.status_code, 405)
+
+        response = self.user1_client.get(NOTIFICATION_UNREAD_COUNT_URL)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['unread_count'], 1)
+        response = self.user2_client.get(NOTIFICATION_UNREAD_COUNT_URL)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['unread_count'], 0)
 
-        comment = self.create_comment(self.linghu, self.linghu_tweet)
-        self.dongxie_client.post(LIKE_URL, {
-            'content_type': 'comment',
-            'object_id': comment.id,
-        })
-        response = self.linghu_client.get(url)
+        response = self.user1_client.post(COMMENT_URL, {'comment': 'test', 'tweet_id': self.tweet.id})
+        data = {'content_type': 'comment', 'object_id': response.data['id']}
+        self.user2_client.post(LIKE_BASE_URL, data)
+
+        response = self.user2_client.get(NOTIFICATION_UNREAD_COUNT_URL)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['unread_count'], 0)
+        response = self.user1_client.get(NOTIFICATION_UNREAD_COUNT_URL)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['unread_count'], 2)
 
     def test_mark_all_as_read(self):
-        self.dongxie_client.post(LIKE_URL, {
-            'content_type': 'tweet',
-            'object_id': self.linghu_tweet.id,
-        })
-        comment = self.create_comment(self.linghu, self.linghu_tweet)
-        self.dongxie_client.post(LIKE_URL, {
-            'content_type': 'comment',
-            'object_id': comment.id,
-        })
+        data = {'content_type': 'tweet', 'object_id': self.tweet.id}
+        self.user2_client.post(LIKE_BASE_URL, data)
+        response = self.user1_client.post(COMMENT_URL, {'comment': 'test', 'tweet_id': self.tweet.id})
+        data = {'content_type': 'comment', 'object_id': response.data['id']}
+        self.user2_client.post(LIKE_BASE_URL, data)
 
-        unread_url = '/api/notifications/unread-count/'
-        response = self.linghu_client.get(unread_url)
+        response = self.user1_client.get(NOTIFICATION_UNREAD_COUNT_URL)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['unread_count'], 2)
 
-        mark_url = '/api/notifications/mark-all-as-read/'
-        response = self.linghu_client.get(mark_url)
+        response = self.anonymous_client.get(NOTIFICATION_MARK_ALL_READ_URL)
+        self.assertEqual(response.status_code, 403)
+        response = self.user1_client.get(NOTIFICATION_MARK_ALL_READ_URL)
         self.assertEqual(response.status_code, 405)
-        response = self.linghu_client.post(mark_url)
+        response = self.user1_client.post(NOTIFICATION_MARK_ALL_READ_URL)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['update_count'], 2)
-        response = self.linghu_client.get(unread_url)
+        response = self.user1_client.get(NOTIFICATION_UNREAD_COUNT_URL)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['unread_count'], 0)
+
+        response = self.user2_client.get(NOTIFICATION_UNREAD_COUNT_URL)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['unread_count'], 0)
 
     def test_list(self):
-        self.dongxie_client.post(LIKE_URL, {
+        self.user2_client.post(LIKE_BASE_URL, {
             'content_type': 'tweet',
-            'object_id': self.linghu_tweet.id,
+            'object_id': self.tweet.id,
         })
-        comment = self.create_comment(self.linghu, self.linghu_tweet)
-        self.dongxie_client.post(LIKE_URL, {
+        comment = self.create_comment(self.user1, self.tweet)
+        self.user2_client.post(LIKE_BASE_URL, {
             'content_type': 'comment',
             'object_id': comment.id,
         })
@@ -102,18 +111,18 @@ class NotificationApiTests(TestCase):
         response = self.anonymous_client.get(NOTIFICATION_URL)
         self.assertEqual(response.status_code, 403)
         # dongxie 看不到任何 notifications
-        response = self.dongxie_client.get(NOTIFICATION_URL)
+        response = self.user2_client.get(NOTIFICATION_URL)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 0)
         # linghu 看到两个 notifications
-        response = self.linghu_client.get(NOTIFICATION_URL)
+        response = self.user1_client.get(NOTIFICATION_URL)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
         # 标记之后看到一个未读
-        notification = self.linghu.notifications.first()
+        notification = self.user1.notifications.first()
         notification.unread = False
         notification.save()
-        response = self.linghu_client.get(NOTIFICATION_URL)
+        response = self.user1_client.get(NOTIFICATION_URL)
         self.assertEqual(len(response.data), 2)
         # response = self.linghu_client.get(NOTIFICATION_URL, {'unread': True})
         # self.assertEqual(len(response.data), 1)

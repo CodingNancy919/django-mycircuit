@@ -15,8 +15,6 @@ class NotificationViewSet(
     permission_classes = (IsAuthenticated,)
     filterset_fields = ('unread',)
 
-
-
     def get_queryset(self):
         # return Notification.objects.filter(recipient=self.request.user)
         return self.request.user.notifications.all()
