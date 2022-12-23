@@ -5,7 +5,7 @@ from comments.models import Comment
 from likes.models import Like
 from django.contrib.contenttypes.models import ContentType
 from rest_framework.exceptions import ValidationError
-from accounts.api.serializers import UserSerializerForTweet
+from accounts.api.serializers import UserSerializerForLike
 
 
 class LikeSerializerForCreateAndCancel(ModelSerializer):
@@ -57,7 +57,7 @@ class LikeSerializerForCancel(LikeSerializerForCreateAndCancel):
 
 
 class LikeSerializer(ModelSerializer):
-    user = UserSerializerForTweet
+    user = UserSerializerForLike
 
     class Meta:
         model = Like

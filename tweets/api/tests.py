@@ -77,6 +77,8 @@ class TweetApiTests(TestCase):
         response = self.anonymous_client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['comments']), 0)
+        self.assertEqual(response.data['user']['nickname'], self.user1.profile.nickname)
+        print(response.data['user']['avatar_url'])
 
         self.create_comment(user=self.user1, tweet=tweet, comment='hello1')
         self.create_comment(user=self.user2, tweet=tweet, comment='hello2')
