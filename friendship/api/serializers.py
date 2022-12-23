@@ -6,6 +6,7 @@ from rest_framework import exceptions
 
 
 class FollowerSerializer(serializers.ModelSerializer):
+    # 也可以写作： from_user = UserSerializerForFriendship()
     user = UserSerializerForFriendship(source='from_user')
 
     class Meta:

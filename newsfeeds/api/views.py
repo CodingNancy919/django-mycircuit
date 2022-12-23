@@ -19,5 +19,5 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
         ).order_by('-created_at')
 
     def list(self, request):
-        serializer = NewsFeedSerializer(self.get_query_set(), many=True)
+        serializer = NewsFeedSerializer(self.get_query_set(), context={'request': request}, many=True)
         return Response({'newsfeeds': serializer.data}, status=status.HTTP_200_OK)
