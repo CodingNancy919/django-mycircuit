@@ -1,6 +1,8 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from testing.testcase import TestCase
-from tweets.models import Tweet
+from tweets.models import Tweet, TweetPhoto
+from tweets.constant import TWEET_PHOTOS_UPLOAD_LIMIT
 
 
 # 注意要加 '/' 结尾，要不然会产生 301 redirect
@@ -86,6 +88,68 @@ class TweetApiTests(TestCase):
         response = self.anonymous_client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['comments']), 2)
+
+    def test_create_with_files_api(self):
+        response = self.user1_client.post(TWEET_CREATE_API, {
+            'content': 'Hello World, this is my first tweet!',
+            'files': []
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(TweetPhoto.objects.count(), 0)
+
+        file1 = SimpleUploadedFile(
+            name='my-twitter1.jpg',
+            content=str.encode('a fake image'),
+            content_type='image/jpeg',
+        )
+        response = self.user1_client.post(TWEET_CREATE_API, {
+            'content': 'Hello World, this is my first tweet!',
+            'files': [file1]
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(TweetPhoto.objects.count(), 1)
+
+        file2 = SimpleUploadedFile(
+            name='my-twitter2.jpg',
+            content=str.encode('a fake image'),
+            content_type='image/jpeg',
+        )
+        file3 = SimpleUploadedFile(
+            name='my-twitter3.jpg',
+            content=str.encode('a fake image'),
+            content_type='image/jpeg',
+        )
+        response = self.user1_client.post(TWEET_CREATE_API, {
+            'content': 'Hello World, this is my first tweet!',
+            'files': [file2, file3]
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(TweetPhoto.objects.count(), 3)
+
+        response = self.user1_client.get(TWEET_RETRIEVE_API.format(response.data['id']))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['photo_urls']), 2)
+        self.assertEqual('my-twitter2' in response.data['photo_urls'][0], True)
+        self.assertEqual('my-twitter3' in response.data['photo_urls'][1], True)
+
+        files = [
+            SimpleUploadedFile(
+                name=f'my-twitter{i}.jpg',
+                content=str.encode(f'{i} fake image'),
+                content_type='image/jpeg',
+            )
+            for i in range(9)
+        ]
+
+        response = self.user1_client.post(TWEET_CREATE_API, {
+            'content': 'Hello World, this is my first tweet!',
+            'files': [files]
+        })
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(TweetPhoto.objects.count(), 3)
+
+
+
 
 
 

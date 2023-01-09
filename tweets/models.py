@@ -73,13 +73,13 @@ class TweetPhoto(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        # 通常前三个index是admin需要用来查看的,(tweet, order)才是用户真正常用需要的index,按order查看某个tweet下的photo
         index_together = (
             ('user', 'created_at'),
             ('tweet', 'created_at'),
             ('has_deleted', 'created_at'),
             ('tweet', 'order'),
         )
-
 
     def __str__(self):
         return f'{self.user} upload {self.file} at {self.created_at}'
