@@ -1,7 +1,7 @@
 from rest_framework.test import APIClient
 from testing.testcase import TestCase
 from friendship.models import Friendship
-from utils.pagination import FriendshipPagination
+from friendship.api.pagination import FriendshipPagination
 
 # 注意要加 '/' 结尾，要不然会产生 301 redirect
 FRIENDSHIP_GET_FOLLOWERS_API = '/api/friendship/{}/followers/'
