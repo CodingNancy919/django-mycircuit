@@ -104,6 +104,9 @@ DATABASES = {
     'ENGINE': 'django.db.backends.mysql',
     'NAME': 'twitter',
     'HOST': '0.0.0.0',
+    # 127.0.0.1 == localhost 通过这个地址去访问的对象必须是同一台机器上同一个网卡内
+    # 同一台机器上启动的两个进程之间可以互相访问 docker/vagrant+物理机实际上是两台机器
+    # 0.0.0.0是public localhost 127.0.0.1是private localhost
     'PORT': '3306',
     'USER': 'root',
     'PASSWORD': 'yourpassword', # 这⾥是⾃⼰下载mysql时候输⼊两次的那个密码
