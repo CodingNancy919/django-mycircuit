@@ -6,7 +6,7 @@ class EndlessPagination(BasePagination):
     page_size = 20
 
     def __init__(self):
-        super(EndlessPagination,self).__init__()
+        super(EndlessPagination, self).__init__()
         self.has_next_page = False
 
     def paginate_queryset(self, queryset, request, view=None):
@@ -27,7 +27,6 @@ class EndlessPagination(BasePagination):
             # 还有下一页从而减少一次空加载。
             created_at__lt = request.query_params['created_at__lt']
             queryset = queryset.filter(created_at__lt=created_at__lt)
-
         queryset = queryset.order_by("-created_at")[:self.page_size+1]
         self.has_next_page = len(queryset) > self.page_size
         return queryset[:self.page_size]
