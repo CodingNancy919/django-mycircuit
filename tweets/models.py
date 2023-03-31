@@ -1,12 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import datetime
+from django.db.models.signals import pre_delete, post_save
 from utils.time_helpers import utc_now
 from likes.models import Like
 from django.contrib.contenttypes.models import ContentType
 from accounts.models import User
 from tweets.constant import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
-from accounts.services import UserService
+from utils.memcached_helper import MemcachedHelper
+from utils.listeners import object_changed
 
 
 class Tweet(models.Model):
@@ -39,6 +40,10 @@ class Tweet(models.Model):
     def __str__(self):
         # 这是你执行 print(tweet instance)时会显示的内容
         return f'{self.created_at} {self.user}:{self.content}'
+
+    @property
+    def cached_user(self):
+        return MemcachedHelper.get_object_from_cache(model_class=User, object_id=self.user_id)
 
 
 class TweetPhoto(models.Model):
@@ -85,6 +90,4 @@ class TweetPhoto(models.Model):
     def __str__(self):
         return f'{self.user} upload {self.file} at {self.created_at}'
 
-    @property
-    def cached_user(self):
-        return UserService.get_user_from_cache(user_id=self.user_id)
+    post_save.connect(object_changed, sender=Tweet)
