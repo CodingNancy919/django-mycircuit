@@ -9,12 +9,14 @@ from tweets.api.serializers import (
 )
 from rest_framework.response import Response
 from newsfeeds.service import NewsFeedService
+from utils.paginations import EndlessPagination
 
 
 # 这里正常不用ModelViewSet因为它支持增删查改
 class TweetViewSet(viewsets.GenericViewSet):
     queryset = Tweet.objects.all()
     serializer_class = TweetSerializerForCreate
+    pagination_class = EndlessPagination
 
     # 这里的action指的就是list create等函数
     def get_permissions(self):
@@ -30,11 +32,12 @@ class TweetViewSet(viewsets.GenericViewSet):
         tweets = Tweet.objects.filter(
             user_id=user_id
         ).order_by('-created_at')
+        tweets = self.paginate_queryset(tweets)
         serializer = TweetSerializer(
             tweets,
             context={'request': request},
             many=True)
-        return Response({'tweets': serializer.data})
+        return self.get_paginated_response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         tweet = self.get_object()
