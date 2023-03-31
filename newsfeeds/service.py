@@ -1,4 +1,4 @@
-from friendship.service import FriendshipService
+from friendship.services import FriendshipService
 from newsfeeds.models import NewsFeed
 
 

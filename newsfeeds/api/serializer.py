@@ -11,4 +11,4 @@ class NewsFeedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NewsFeed
-        fields = ['id', 'user', 'tweet', 'created_at']
+        fields = ['id', 'tweet', 'created_at']

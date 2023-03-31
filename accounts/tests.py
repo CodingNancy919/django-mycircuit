@@ -5,7 +5,7 @@ from accounts.models import UserProfile
 # Create your tests here.
 class UserProfileModelTests(TestCase):
     def setUp(self):
-        pass
+        self.clear_cache()
 
     def test_user_profile(self):
         user = self.create_user(username='user1')

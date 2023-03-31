@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from tweets.models import Tweet
+from accounts.services import UserService
 
 
 class NewsFeed(models.Model):
@@ -25,3 +26,6 @@ class NewsFeed(models.Model):
     def __str__(self):
         return f'{self.created_at} {self.user} can see {self.tweet}'
 
+    @property
+    def cached_user(self):
+        return UserService.get_user_from_cache(user_id=self.user_id)
