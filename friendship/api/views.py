@@ -12,6 +12,7 @@ from friendship.api.serializers import (
     FriendshipSerializerForDelete,
 )
 from friendship.api.pagination import FriendshipPagination
+from friendship.service import FriendshipService
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
@@ -25,6 +26,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 #         action = request.query_params.get('action','followers')
 #         if action == 'followers':
 #             ...
+
 
     @action(methods=['GET'], detail=True, permission_classes=[AllowAny])
     def followers(self, request, pk):
@@ -69,6 +71,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         friendship = serializer.save()
+        FriendshipService.invalidate_following_cache(from_user_id=request.user.id)
         return Response({
             'Success': True,
             'Your friend info': FollowingSerializer(friendship, context={'request': request}).data
@@ -92,6 +95,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             from_user_id=request.user.id,
             to_user_id=pk
         ).delete()
+        FriendshipService.invalidate_following_cache(from_user_id=request.user.id)
         return Response(data={'Success': True, 'deleted': deleted})
 
     def list(self, request):

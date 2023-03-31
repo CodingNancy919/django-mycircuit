@@ -13,7 +13,7 @@ FRIENDSHIP_UNFOLLOW_API = '/api/friendship/{}/unfollow/'
 class FriendshipApiTests(TestCase):
 
     def setUp(self):
-
+        self.clear_cache()
         self.user1 = self.create_user('user1', 'user1@jiuzhang.com')
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
