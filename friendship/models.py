@@ -2,7 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_delete, post_save
 from friendship.listeners import friendship_changed
-from accounts.services import UserService
+from utils.memcached_helper import MemcachedHelper
+
+
 # Create your models here.
 
 
@@ -35,11 +37,11 @@ class Friendship(models.Model):
 
     @property
     def cached_from_user(self):
-        return UserService.get_user_from_cache(user_id=self.from_user_id)
+        return MemcachedHelper.get_object_from_cache(model_class=User, object_id=self.from_user_id)
 
     @property
     def cached_to_user(self):
-        return UserService.get_user_from_cache(user_id=self.to_user_id)
+        return MemcachedHelper.get_object_from_cache(model_class=User, object_id=self.to_user_id)
 
 
 # hook up with listeners to invalidate cache

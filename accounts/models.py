@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_delete, post_save
-from accounts.listeners import user_changed, userprofile_changed
+from accounts.listeners import userprofile_changed
 from accounts.services import UserProfileService
+from utils.listeners import object_changed
 
 
 class UserProfile(models.Model):
@@ -40,7 +41,7 @@ class UserProfile(models.Model):
 # hook up with listeners to invalidate cache
 
 
-pre_delete.connect(user_changed, sender=User)
-post_save.connect(user_changed, sender=User)
+pre_delete.connect(object_changed, sender=User)
+post_save.connect(object_changed, sender=User)
 pre_delete.connect(userprofile_changed, sender=UserProfile)
 post_save.connect(userprofile_changed, sender=UserProfile)
