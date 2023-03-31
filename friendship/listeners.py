@@ -1,3 +1,3 @@
-def invalidate_following_cache(cls, from_user_id):
-    from friendship.service import FriendshipService
-    FriendshipService.invalidate_following_cache(from_user_id=from_user_id)
+def friendship_changed(sender, instance, **kwags):
+    from friendship.services import FriendshipService
+    FriendshipService.invalidate_following_cache(instance.from_user_id)

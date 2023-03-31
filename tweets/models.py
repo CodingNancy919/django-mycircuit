@@ -6,6 +6,7 @@ from likes.models import Like
 from django.contrib.contenttypes.models import ContentType
 from accounts.models import User
 from tweets.constant import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
+from accounts.services import UserService
 
 
 class Tweet(models.Model):
@@ -84,3 +85,6 @@ class TweetPhoto(models.Model):
     def __str__(self):
         return f'{self.user} upload {self.file} at {self.created_at}'
 
+    @property
+    def cached_user(self):
+        return UserService.get_user_from_cache(user_id=self.user_id)

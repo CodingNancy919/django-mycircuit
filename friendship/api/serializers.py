@@ -3,7 +3,7 @@ from accounts.api.serializers import UserSerializerForFriendship
 from django.contrib.auth.models import User
 from friendship.models import Friendship
 from rest_framework import exceptions
-from friendship.service import FriendshipService
+from friendship.services import FriendshipService
 
 # python支持动态生成和加载变量，类似于对哈希表进行操作，可以定义一个object level的缓存变量，java则需要预先定义
 # 每次web server访问cache的时候，_cached_following_user_id是存在本地进程的内存中 http request结束以后被释放
@@ -23,7 +23,7 @@ class FollowingUserIdSetMixin:
 
 class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
     # 也可以写作： from_user = UserSerializerForFriendship()
-    user = UserSerializerForFriendship(source='from_user')
+    user = UserSerializerForFriendship(source='cached_from_user')
     has_followed = serializers.SerializerMethodField()
 
     class Meta:
@@ -38,7 +38,7 @@ class FollowerSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
 
 
 class FollowingSerializer(serializers.ModelSerializer, FollowingUserIdSetMixin):
-    user = UserSerializerForFriendship(source='to_user')
+    user = UserSerializerForFriendship(source='cached_to_user')
     has_followed = serializers.SerializerMethodField()
 
     class Meta:
