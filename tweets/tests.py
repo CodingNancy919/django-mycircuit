@@ -7,6 +7,8 @@ from rest_framework.test import APIClient
 from django.contrib.auth.models import User
 from tweets.models import TweetPhoto
 from tweets.constant import TweetPhotoStatus
+from utils.redis_client import RedisClient
+from utils.redis_serializer import DjangoModelSerializer
 LOGIN_URL = '/api/accounts/login/'
 LOGOUT_URL = '/api/accounts/logout/'
 
@@ -35,5 +37,21 @@ class TweetTest(TestCase):
         self.assertEqual(tweet_photo.tweet.id, self.tweet.id)
         self.assertEqual(tweet_photo.status, TweetPhotoStatus.PENDING)
         self.assertEqual(tweet_photo.has_deleted, False)
+
+    def test_tweet_redis(self):
+        self.tweet = self.create_tweet(self.user1)
+        conn = RedisClient.get_connection()
+        serialized_tweet = DjangoModelSerializer.serialize(self.tweet)
+        conn.set(f'tweet {self.tweet.id}', serialized_tweet)
+
+        data = conn.get(f'tweet notExist')
+        self.assertEqual(data, None)
+
+        serialized_tweet = conn.get(f'tweet {self.tweet.id}')
+        self.assertEqual(self.tweet, DjangoModelSerializer.deserialize(serialized_tweet))
+
+
+
+
 
 
