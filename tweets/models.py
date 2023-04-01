@@ -8,6 +8,7 @@ from accounts.models import User
 from tweets.constant import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
 from utils.memcached_helper import MemcachedHelper
 from utils.listeners import object_changed
+from tweets.listeners import push_tweet_to_cache
 
 
 class Tweet(models.Model):
@@ -91,3 +92,5 @@ class TweetPhoto(models.Model):
         return f'{self.user} upload {self.file} at {self.created_at}'
 
     post_save.connect(object_changed, sender=Tweet)
+    pre_delete.connect(object_changed, sender=Tweet)
+    post_save.connect(push_tweet_to_cache, sender=Tweet)
