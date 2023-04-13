@@ -1,5 +1,7 @@
 from friendship.services import FriendshipService
 from newsfeeds.models import NewsFeed
+from twitter.cache import USER_NEWSFEEDS_PATTERN
+from utils.redis_helper import RedisHelper
 
 
 class NewsFeedService(object):
@@ -10,3 +12,26 @@ class NewsFeedService(object):
         newsfeeds = [NewsFeed(user=follower, tweet=tweet) for follower in followers]
         newsfeeds.append(NewsFeed(user=tweet.user, tweet=tweet))
         NewsFeed.objects.bulk_create(newsfeeds)
+        for newsfeed in newsfeeds:
+            cls.push_newsfeed_to_cache(newsfeed)
+
+
+    @classmethod
+    def get_cached_newsfeeds(cls, user_id):
+        key = USER_NEWSFEEDS_PATTERN.format(user_id)
+        queryset = NewsFeed.objects.filter(
+            user_id=user_id
+        ).order_by('-created_at')
+
+        return RedisHelper.get_objects(key, queryset)
+
+    @classmethod
+    def push_newsfeed_to_cache(cls, newsfeed):
+        key = USER_NEWSFEEDS_PATTERN.format(newsfeed.user_id)
+        queryset = NewsFeed.objects.filter(
+            user_id=newsfeed.user_id
+        ).order_by('-created_at')
+        RedisHelper.push_object(key, newsfeed, queryset)
+
+
+

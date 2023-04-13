@@ -91,6 +91,7 @@ class TweetPhoto(models.Model):
     def __str__(self):
         return f'{self.user} upload {self.file} at {self.created_at}'
 
-    post_save.connect(object_changed, sender=Tweet)
-    pre_delete.connect(object_changed, sender=Tweet)
-    post_save.connect(push_tweet_to_cache, sender=Tweet)
+
+post_save.connect(object_changed, sender=Tweet)
+pre_delete.connect(object_changed, sender=Tweet)
+post_save.connect(push_tweet_to_cache, sender=Tweet)
