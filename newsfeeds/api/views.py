@@ -22,7 +22,13 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
         ).order_by('-created_at')
 
     def list(self, request):
-        queryset = NewsFeedService.get_cached_newsfeeds(user_id=request.user.id)
-        page = self.paginate_queryset(queryset)
+        user_id = request.user.id
+        cached_newsfeeds = NewsFeedService.get_cached_newsfeeds(user_id)
+        page = self.paginator.paginate_cached_list(cached_newsfeeds, request)
+        if page is None:
+            queryset = NewsFeed.objects.filter(
+                user_id=user_id
+                ).order_by('-created_at')
+            page = self.paginate_queryset(queryset)
         serializer = NewsFeedSerializer(page, context={'request': request}, many=True)
         return self.get_paginated_response(serializer.data)
