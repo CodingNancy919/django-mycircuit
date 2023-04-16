@@ -16,8 +16,14 @@ from friendship.services import FriendshipService
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
+    # 我们希望 POST /api/friendship/1/follow 是去 follow user_id=1 的用户
+    # 因此这里 queryset 需要是 User.objects.all()
+    # 如果是 Friendship.objects.all 的话就会出现 404 Not Found
+    # 因为 detail=True 的 actions 会默认先去调用 get_object() 也就是
+    # queryset.filter(pk=1) 查询一下这个 object 在不在
     serializer_class = FriendshipSerializerForCreate
     queryset = User.objects.all()
+    # 一般来说，不同的 views 所需要的 pagination 规则肯定是不同的，因此一般都需要自定义
     pagination_class = FriendshipPagination
 
 
@@ -80,6 +86,12 @@ class FriendshipViewSet(viewsets.GenericViewSet):
     @action(methods=['POST'], detail=True, permission_classes=[IsAuthenticated])
     def unfollow(self, request, pk):
         self.get_object()
+        # 注意 pk 的类型是 str，所以要做类型转换
+        # if request.user.id == int(pk):
+        #     return Response({
+        #         'success': False,
+        #         'message': 'You cannot unfollow yourself',
+        #     }, status=status.HTTP_400_BAD_REQUEST)
         serializer = FriendshipSerializerForDelete(data={
             'from_user_id': request.user.id,
             'to_user_id': pk

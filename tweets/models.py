@@ -22,6 +22,12 @@ class Tweet(models.Model):
     # CharField可以表示0~65535， 255是因为每个字符串自动加上\0保存，实际上是256 -1,
     created_at = models.DateTimeField(auto_now_add=True)
     # 每次创建时添加created_at这个字段，更新并不会改动,DateTimeField默认是有时区的，为服务器默认时区
+
+    # 新增的 field 一定要设置 null=True，否则 default = 0 会遍历整个表单去设置
+    # 导致 Migration 过程非常慢，从而把整张表单锁死，从而正常用户无法创建新的 tweets
+    likes_count = models.IntegerField(default=0, null=True)
+    comments_count = models.IntegerField(default=0, null=True)
+
     class Meta:
         index_together = (('user', 'created_at'),)
         ordering = ('user', '-created_at')
