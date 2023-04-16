@@ -53,6 +53,48 @@ class RedisHelper:
         # 就不走单个 push 的方式加到 cache 里了
         cls._load_objects_to_cache(key, queryset)
 
+    @classmethod
+    def get_obj_key(cls, obj, attr):
+        key = "{}{}{}".format(obj.__class__.__name__, obj.object_id, attr)
+        return key
+
+    @classmethod
+    def incr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_obj_key(obj, attr)
+        conn.incr(key)
+
+    @classmethod
+    def decr_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_obj_key(obj, attr)
+        conn.decr(key)
+
+    @classmethod
+    def get_count(cls, obj, attr):
+        conn = RedisClient.get_connection()
+        key = cls.get_obj_key(obj, attr)
+        count = conn.get(key)
+        if count is not None:
+            return int(count)
+
+        obj.refresh_from_db()
+        count = getattr(obj, attr)
+        conn.set(key, count)
+        conn.expire(key, settings.REDIS_KEY_EXPIRE_TIME)
+        return count
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
