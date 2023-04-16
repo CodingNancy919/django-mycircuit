@@ -11,7 +11,7 @@ def incr_comments_count(sender, instance, created, **kwags):
 
     tweet = instance.tweet
     Tweet.objects.filter(id=tweet.id).update(comments_count=F('comments_count')+1)
-    object_changed(sender=Tweet, instance=tweet)
+    # object_changed(sender=Tweet, instance=tweet)
     RedisHelper.incr_count(tweet, "comments_count")
 
     # tweet = Tweet.objects.filter(id=instance.object_id)
@@ -26,7 +26,7 @@ def decr_comments_count(sender, instance, created, **kwags):
         return
     tweet = instance.tweet
     Tweet.objects.filter(id=tweet.id).update(comments_count=F('comments_count') - 1)
-    object_changed(sender=Tweet, instance=tweet)
+    # object_changed(sender=Tweet, instance=tweet)
     RedisHelper.decr_count(tweet, "comments_count")
 
     # tweet = Tweet.objects.filter(id=instance.object_id)
