@@ -184,7 +184,7 @@ MEDIA_ROOT = 'media/'
 # https://docs.djangoproject.com/en/3.1/topics/cache/
 # use `pip install python-memcached`
 # DO NOT pip install memcache or django-memcached
-CACHE = {
+CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',

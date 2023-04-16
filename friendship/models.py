@@ -46,4 +46,4 @@ class Friendship(models.Model):
 
 # hook up with listeners to invalidate cache
 pre_delete.connect(friendship_changed, sender=Friendship)
-post_save.connect.connect(friendship_changed, sender=Friendship)
+post_save.connect(friendship_changed, sender=Friendship)

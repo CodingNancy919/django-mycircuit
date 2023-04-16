@@ -1,4 +1,4 @@
-from twitter.cache import USER_PATTERN, USERPROFILE_PATTERN
+from twitter.cache import USERPROFILE_PATTERN
 from django.contrib.auth.models import User
 from django.utils.cache import caches
 from django.conf import settings
