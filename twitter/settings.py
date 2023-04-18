@@ -58,7 +58,8 @@ rest_framework = {
     'PAGE_SIZE': 10,
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
-    ]
+    ],
+    'EXCEPTION_HANDLER': 'utils.ratelimit.exception_handler'
 }
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -197,7 +198,13 @@ CACHES = {
         'LOCATION': '127.0.0.1:11211',
         'TIMEOUT': 86400,
         'KEY_PREFIX': 'testing',
-    }
+    },
+    'ratelimit': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 86400 * 7,
+        'KEY_PREFIX': 'rl',
+    },
 }
 
 # Redis
@@ -215,12 +222,15 @@ REDIS_LIST_LENGTH_LIMIT = 1000 if not TESTING else 20
 #   celery -A twitter worker -l INFO
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/2' if not TESTING else 'redis://127.0.0.1:6379/0'
 CELERY_TIMEZONE = 'UTC'
+
+# set to false for asynchronous tasks processing, set to true when debugging or testing
 CELERY_TASK_ALWAYS_EAGER = TESTING
 
 CELERY_QUEUES = (
     Queue('default', routing_key='default'),
     Queue('newsfeed', routing_key='newsfeed')
 )
+
 
 # work_type = os.environ.get('work_type')
 # if work_type == "newsfeed":
@@ -231,6 +241,13 @@ CELERY_QUEUES = (
 #     CELERY_QUEUES = (
 #         Queue('default', routing_key='default'),
 #     )
+
+# Rate Limiter
+RATELIMIT_USE_CACHE = 'ratelimit'
+RATELIMIT_CACHE_PREFIX = 'rl:'   # 避免和其他的 key 冲突
+RATELIMIT_ENABLE = not TESTING  # 在某些环境下，比如内部测试等环境下，一般也会关掉
+
+
 
 try:
     from .local_settings import *

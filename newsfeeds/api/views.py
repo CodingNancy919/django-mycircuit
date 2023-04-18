@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from utils.paginations import EndlessPagination
 from newsfeeds.service import NewsFeedService
+from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
 
 
 class NewsFeedViewSet(viewsets.GenericViewSet):
@@ -21,6 +23,7 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
             user=self.request.user
         ).order_by('-created_at')
 
+    @method_decorator(ratelimit(key='user', rate='5/s', method='GET', block=True))
     def list(self, request):
         # newsfeeds = NewsFeedService.get_cached_newsfeeds(request.user.id)
         # page = self.paginate_queryset(newsfeeds)

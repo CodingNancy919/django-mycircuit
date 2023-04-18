@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from newsfeeds.service import NewsFeedService
 from utils.paginations import EndlessPagination
 from tweets.services import TweetService
+from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
 
 
 # 这里正常不用ModelViewSet因为它支持增删查改
@@ -51,6 +53,7 @@ class TweetViewSet(viewsets.GenericViewSet):
             many=True)
         return self.get_paginated_response(serializer.data)
 
+    @method_decorator(ratelimit(key='user_or_ip', rate='5/s', method='GET', block=True))
     def retrieve(self, request, *args, **kwargs):
         tweet = self.get_object()
         serializer = TweetSerializerForDetail(
@@ -58,6 +61,8 @@ class TweetViewSet(viewsets.GenericViewSet):
             context={'request': request})
         return Response(serializer.data)
 
+    @method_decorator(ratelimit(key='user', rate='1/s', method='POST', block=True))
+    @method_decorator(ratelimit(key='user', rate='5/m', method='POST', block=True))
     def create(self, request):
         serializer = TweetSerializerForCreate(
             context={'request': request},
