@@ -10,6 +10,8 @@ from comments.api.serializers import (
 from utils.permissions import IsObjectOwner
 from utils.decorators import required_params
 from inbox.services import NotificationService
+from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
 
 
 class CommentViewSet(viewsets.GenericViewSet):
@@ -34,7 +36,9 @@ class CommentViewSet(viewsets.GenericViewSet):
             return [IsAuthenticated(), IsObjectOwner()]
         return [AllowAny()]
 
+    # 先通过required_params筛选过滤，因为这个decorator不需要访问cache,执行速度也快，因此可以把ratelimit的decorator放到第二个来执行
     @required_params(params=['tweet_id'])
+    @method_decorator(ratelimit(key='user', rate='10/m', method='GET', block=True))
     def list(self, request, *args, **kwargs):
         # if 'tweet_id' not in request.query_params:
         #     return Response({
@@ -58,6 +62,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             'comments': serializer.data
         }, status=status.HTTP_200_OK)
 
+    @method_decorator(ratelimit(key='user', rate='3/s', method='POST', block=True))
     def create(self, request, *args, **kwargs):
         data = {
              'user_id': request.user.id,
@@ -79,6 +84,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             status=status.HTTP_201_CREATED
         )
 
+    @method_decorator(ratelimit(key='user', rate='3/s', method='POST', block=True))
     def update(self, request, *args, **kwargs):
         # get_object 是 DRF 包装的对于detail=True的action一个函数，会在找不到的时候 raise 404 error
         # 所以这里无需做额外判断
@@ -101,6 +107,7 @@ class CommentViewSet(viewsets.GenericViewSet):
             status=status.HTTP_200_OK
         )
 
+    @method_decorator(ratelimit(key='user', rate='5/s', method='POST', block=True))
     def destroy(self, request, *args, **kwargs):
         # DRF 里默认 destroy 返回的是 status code = 204 no content
         # 这里 return 了 success=True 更直观的让前端去做判断，所以 return 200 更合适

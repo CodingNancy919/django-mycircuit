@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
 from friendship.models import Friendship
+from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
 from friendship.api.serializers import (
     FollowerSerializer,
     FollowingSerializer,
@@ -33,8 +35,8 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 #         if action == 'followers':
 #             ...
 
-
     @action(methods=['GET'], detail=True, permission_classes=[AllowAny])
+    @method_decorator(ratelimit(key='user_or_ip', rate='3/s', method='GET', block=True))
     def followers(self, request, pk):
         followers = Friendship.objects.filter(
             to_user_id=pk
@@ -44,6 +46,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(methods=['GET'], detail=True, permission_classes=[AllowAny])
+    @method_decorator(ratelimit(key='user_or_ip', rate='3/s', method='GET', block=True))
     def following(self, request, pk):
         followings = Friendship.objects.filter(
             from_user_id=pk
@@ -53,6 +56,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(methods=['POST'], detail=True, permission_classes=[IsAuthenticated])
+    @method_decorator(ratelimit(key='user', rate='10/s', method='POST', block=True))
     def follow(self, request, pk):
         # pk 对应url api/friendship/id/follow的id detail=True会自动执行self.get_object()
         # 从queryset.filter(pk=id)中查询pk在不在 如果不存在返回404
@@ -84,6 +88,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         }, status=status.HTTP_201_CREATED)
 
     @action(methods=['POST'], detail=True, permission_classes=[IsAuthenticated])
+    @method_decorator(ratelimit(key='user', rate='10/s', method='POST', block=True))
     def unfollow(self, request, pk):
         self.get_object()
         # 注意 pk 的类型是 str，所以要做类型转换

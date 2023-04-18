@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from utils.decorators import required_params
 from notifications.models import Notification
+from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
+
 from inbox.api.serializers import (
     NotificationSerializer,
     NotificationSerializerForUpdate,
@@ -25,6 +28,7 @@ class NotificationViewSet(
         return self.request.user.notifications.all()
 
     @action(methods=['GET'], detail=False, url_path='unread-count')
+    @method_decorator(ratelimit(key='user', rate='3/s', method='GET', block=True))
     def unread_count(self, request, *args, **kwargs):
         unread_count = self.get_queryset().filter(unread=True).count()
         # Notification.objects.filter(
@@ -34,11 +38,13 @@ class NotificationViewSet(
         return Response({'unread_count': unread_count}, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False, url_path='mark-all-as-read')
+    @method_decorator(ratelimit(key='user', rate='3/s', method='POST', block=True))
     def mark_all_as_read(self, request, *args, **kwargs):
         update_count = self.get_queryset().filter(unread=True).update(unread=False)
         return Response({'update_count': update_count}, status=status.HTTP_200_OK)
 
     @required_params(method='PUT', params=['unread'])
+    @method_decorator(ratelimit(key='user', rate='3/s', method='POST', block=True))
     def update(self, request, *args, **kwargs):
         """
        用户可以标记一个 notification 为已读或者未读。标记已读和未读都是对 notification

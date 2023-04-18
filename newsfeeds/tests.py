@@ -51,6 +51,7 @@ class NewsFeedServiceTests(TestCase):
         cached_newsfeeds = NewsFeedService.get_cached_newsfeeds(self.user2.id)
         self.assertEqual([item.id for item in cached_newsfeeds], [newsfeed2.id, newsfeed.id])
 
+
 class NewsFeedTasksTests(TestCase):
 
     def setUp(self):
