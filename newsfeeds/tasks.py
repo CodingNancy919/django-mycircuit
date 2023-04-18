@@ -19,6 +19,11 @@ def fanout_newsfeed_main_task(tweet_id):
         fanout_newsfeed_batch_task.delay(tweet_id, batch_ids)
         index += FANOUT_BATCH_SIZE
 
+    return "{} newsfeeds are going to be fanout, {} batched are created".format(
+        len(followers_id),
+        len(followers_id) // FANOUT_BATCH_SIZE + 1
+    )
+
 
 @shared_task(time_limit=ONE_HOUR, routing_key='newsfeed')
 def fanout_newsfeed_batch_task(tweet_id, followers_id):
@@ -34,3 +39,4 @@ def fanout_newsfeed_batch_task(tweet_id, followers_id):
     # bulk create 不会触发 post_save 的 signal，所以需要手动 push 到 cache 里
     for newsfeed in newsfeeds:
         NewsFeedService.push_newsfeed_to_cache(newsfeed)
+    return "{} newsfeeds created".format(len(newsfeeds))
