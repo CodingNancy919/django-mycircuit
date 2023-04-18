@@ -9,7 +9,9 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+import os
 
+from kombu import Queue
 from pathlib import Path
 import sys
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -214,6 +216,21 @@ REDIS_LIST_LENGTH_LIMIT = 1000 if not TESTING else 20
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/2' if not TESTING else 'redis://127.0.0.1:6379/0'
 CELERY_TIMEZONE = 'UTC'
 CELERY_TASK_ALWAYS_EAGER = TESTING
+
+CELERY_QUEUES = (
+    Queue('default', routing_key='default'),
+    Queue('newsfeed', routing_key='newsfeed')
+)
+
+# work_type = os.environ.get('work_type')
+# if work_type == "newsfeed":
+#     CELERY_QUEUES = (
+#         Queue('newsfeed', routing_key='newsfeed')
+#     )
+# else:
+#     CELERY_QUEUES = (
+#         Queue('default', routing_key='default'),
+#     )
 
 try:
     from .local_settings import *
