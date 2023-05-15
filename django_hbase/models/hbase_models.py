@@ -40,8 +40,12 @@ class HBaseModel:
                 value = int(time.time() * 1000000)
             setattr(self, key, value)
 
+    @property
+    def row_key(self):
+        return self.serialize_row_key(self.__dict__)
+
     @classmethod
-    def serialize_row_key(cls, data, is_prefix=True):
+    def serialize_row_key(cls, data):
         """
        serialize dict to bytes (not str)
        {key1: val1} => b"val1"
@@ -54,9 +58,7 @@ class HBaseModel:
                 continue
             value = data.get(key)
             if value is None:
-                if not is_prefix:
-                    raise BadRowKeyError(f"{key} is missing in row key")
-                break
+                raise BadRowKeyError(f"{key} is missing in row key")
 
             value = cls.serialize_field(field, value)
             if ':' in value:
@@ -129,7 +131,7 @@ class HBaseModel:
             raise EmptyColumnError()
 
         table = self.get_table()
-        row_key = self.serialize_row_key(self.__dict__, is_prefix=False)
+        row_key = self.serialize_row_key(self.__dict__)
         table.put(row_key, row_data)
 
     @classmethod
@@ -141,7 +143,7 @@ class HBaseModel:
     @classmethod
     def get(cls, **kwargs):
         table = cls.get_table()
-        row_key = cls.serialize_row_key(kwargs, is_prefix=False)
+        row_key = cls.serialize_row_key(kwargs)
         row = table.row(row_key)
         return cls.init_from_row(row_key, row)
 
