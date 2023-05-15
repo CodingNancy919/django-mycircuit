@@ -1,0 +1,2 @@
+class EmptyColumnError(Exception):
+    pass

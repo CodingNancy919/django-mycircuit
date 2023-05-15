@@ -25,6 +25,7 @@ class NewsFeedService(object):
     @classmethod
     def get_cached_newsfeeds(cls, user_id):
         key = USER_NEWSFEEDS_PATTERN.format(user_id)
+
         queryset = NewsFeed.objects.filter(
             user_id=user_id
         ).order_by('-created_at')

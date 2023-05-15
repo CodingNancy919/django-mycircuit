@@ -1,7 +1,7 @@
-from rest_framework.pagination import BasePagination
-from rest_framework.response import Response
 from dateutil import parser
 from django.conf import settings
+from rest_framework.pagination import BasePagination
+from rest_framework.response import Response
 
 
 class EndlessPagination(BasePagination):

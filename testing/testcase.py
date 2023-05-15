@@ -1,15 +1,17 @@
-from django.test import TestCase as DjangoTestCase
-from django.contrib.auth.models import User
 
-from friendship.models import Friendship
-from tweets.models import Tweet
-from rest_framework.test import APIClient
 from comments.models import Comment
-from likes.models import Like
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from newsfeeds.models import NewsFeed
+from django.test import TestCase as DjangoTestCase
 from django.utils.cache import caches
+from friendship.models import Friendship
+from likes.models import Like
+from newsfeeds.models import NewsFeed
+from rest_framework.test import APIClient
+from tweets.models import Tweet
 from utils.redis_client import RedisClient
+
+
 
 
 class TestCase(DjangoTestCase):
