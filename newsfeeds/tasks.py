@@ -1,9 +1,9 @@
 from celery import shared_task
-from utils.time_constants import ONE_HOUR
 from friendship.services import FriendshipService
-from tweets.models import Tweet
-from newsfeeds.models import NewsFeed
 from newsfeeds.constants import FANOUT_BATCH_SIZE
+from newsfeeds.models import NewsFeed
+from tweets.models import Tweet
+from utils.time_constants import ONE_HOUR
 
 
 @shared_task(time_limit=ONE_HOUR, routing_key='default')
