@@ -55,9 +55,9 @@ class NewsFeedServiceTests(TestCase):
 class NewsFeedTasksTests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.user1 = self.create_user(username='user1')
         self.user2 = self.create_user(username='user2')
-        self.clear_cache()
 
     def test_fanout_newsfeeds(self):
         # 正常 request
@@ -83,7 +83,7 @@ class NewsFeedTasksTests(TestCase):
         tweet = self.create_tweet(self.user2, "tweet 3")
         self.create_friendship(self.create_user(username="new user"), self.user2)
         msg = fanout_newsfeed_main_task(tweet.id)
-        self.assertEqual(msg, "4 newsfeeds are going to be fanout, 1 batched are created")
+        self.assertEqual(msg, "4 newsfeeds are going to be fanout, 2 batched are created")
         self.assertEqual(11, NewsFeed.objects.count())
         cached_newsfeeds = NewsFeedService.get_cached_newsfeeds(self.user2.id)
         self.assertEqual(3, len(cached_newsfeeds))

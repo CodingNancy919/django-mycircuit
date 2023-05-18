@@ -17,7 +17,8 @@ class HBaseFollowing(models.HBaseModel):
         table_name = 'twitter_followings'
         row_key = ('from_user_id', 'created_at')
 
-class HBaseFollowing(models.HBaseModel):
+
+class HBaseFollowers(models.HBaseModel):
     """
     存储 to_user_id 被哪些人 follow 了，row_key 按照 to_user_id + created_at 排序
     可以支持查询：

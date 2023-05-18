@@ -26,6 +26,7 @@ class TweetTest(TestCase):
         self.assertEqual(tweet.hours_to_now, 10)
 
     def setUp(self):
+        self.clear_cache()
         self.user1 = self.create_user(username='user1')
         self.tweet = self.create_tweet(self.user1)
 
@@ -56,8 +57,8 @@ class TweetTest(TestCase):
 class TweetServiceTests(TestCase):
 
     def setUp(self):
-        self.user1 = self.create_user(username='user1')
         self.clear_cache()
+        self.user1 = self.create_user(username='user1')
 
     def test_get_user_tweets(self):
         RedisClient.clear()
@@ -70,8 +71,13 @@ class TweetServiceTests(TestCase):
 
         tweets_id = tweets_id[::-1]
 
-        cached_tweets = TweetService.get_cached_tweets(self.user1.id)
-        self.assertEqual([item.id for item in cached_tweets], tweets_id)
+        # cache miss
+        tweets = TweetService.get_cached_tweets(self.user1.id)
+        self.assertEqual([t.id for t in tweets], tweets_id)
+
+        # cache hit
+        tweets = TweetService.get_cached_tweets(self.user1.id)
+        self.assertEqual([t.id for t in tweets], tweets_id)
 
         new_tweet = self.create_tweet(self.user1, content='new tweet')
         tweets_id.insert(0, new_tweet.id)

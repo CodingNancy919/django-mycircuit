@@ -20,7 +20,7 @@ class TweetService(object):
 
     @classmethod
     def get_cached_tweets(cls, user_id):
-        key = USER_TWEETS_PATTERN.format(user_id)
+        key = USER_TWEETS_PATTERN.format(user_id=user_id)
 
         # django queryset use lazy loading 此时并不会产生数据库查询 在调用queryset具体的操作时才会访问
         queryset = Tweet.objects.filter(
@@ -30,8 +30,7 @@ class TweetService(object):
 
     @classmethod
     def push_tweet_to_cache(cls, tweet):
-        key = USER_TWEETS_PATTERN.format(tweet.user_id)
-
+        key = USER_TWEETS_PATTERN.format(user_id=tweet.user_id)
         # django lazy loading 此时并不会产生数据库查询 在调用queryset具体的操作时才会访问
         queryset = Tweet.objects.filter(
             user_id=tweet.user_id
