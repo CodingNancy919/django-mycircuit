@@ -32,7 +32,11 @@ class TestCase(DjangoTestCase):
         for hbase_model_class in HBaseModel.__subclasses__():
             hbase_model_class.drop_table()
 
-
+    def test_happybase(self):
+        from django.conf import settings
+        import happybase
+        conn = happybase.Connection("192.168.33.10")
+        conn.tables()
 
     def clear_cache(self):
         caches['testing'].clear()

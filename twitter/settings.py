@@ -249,7 +249,7 @@ RATELIMIT_CACHE_PREFIX = 'rl:'   # 避免和其他的 key 冲突
 RATELIMIT_ENABLE = not TESTING  # 在某些环境下，比如内部测试等环境下，一般也会关掉
 
 #HBASE DATABASE
-HBASE_HOST = '127.0.0.1'
+HBASE_HOST = '192.168.33.10'
 
 try:
     from .local_settings import *

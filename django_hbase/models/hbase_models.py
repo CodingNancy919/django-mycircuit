@@ -78,7 +78,7 @@ class HBaseModel:
         return self.serialize_row_key(self.__dict__)
 
     @classmethod
-    def serialize_row_key(cls, data):
+    def serialize_row_key(cls, data, is_prefix=False):
         """
        serialize dict to bytes (not str)
        {key1: val1} => b"val1"
@@ -91,7 +91,8 @@ class HBaseModel:
                 continue
             value = data.get(key)
             if value is None:
-                raise BadRowKeyError(f"{key} is missing in row key")
+                if not is_prefix:
+                    raise BadRowKeyError(f"{key} is missing in row key")
 
             value = cls.serialize_field(field, value)
             if ':' in value:
@@ -191,3 +192,30 @@ class HBaseModel:
             key = column_key[column_key.find(':') + 1:]
             data[key] = cls.deserialize_field(key, column_value)
         return cls(**data)
+
+    @classmethod
+    def serialize_row_key_from_tuple(cls, row_key_tuple):
+        if row_key_tuple is None:
+            return None
+        row_key = {
+            key: value
+            for key, value in zip(cls.Meta.row_key, row_key_tuple)
+        }
+        return cls.serialize_row_key(row_key)
+
+    @classmethod
+    def filter(cls, start=None, stop=None, prefix=None, limit=None, reverse=False):
+        row_start = cls.serialize_row_key_from_tuple(start)
+        row_stop = cls.serialize_row_key_from_tuple(stop)
+        row_prefix = cls.serialize_row_key_from_tuple(prefix)
+
+        table = cls.get_table()
+        row = table.scan(row_start, row_stop, row_prefix, limit=limit, reverse=reverse)
+
+        results = []
+        for row_key, row_data in row:
+            instance = cls.init_from_row(row_key, row_data)
+            results.append(instance)
+        return results
+
+
