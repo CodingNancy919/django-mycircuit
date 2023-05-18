@@ -1,5 +1,6 @@
-from django_hbase.models import HBaseField, IntegerField, TimestampField
+from django.conf import settings
 from django_hbase.client import HBaseClient
+from django_hbase.models import HBaseField, IntegerField, TimestampField
 import time
 
 
@@ -20,9 +21,41 @@ class HBaseModel:
     @classmethod
     def get_table(cls):
         conn = HBaseClient.get_connection()
+        table_name = cls.get_table_name()
+        return conn.table(name=table_name, use_prefix=None)
+
+    @classmethod
+    def get_table_name(cls):
         if not cls.Meta.table_name:
             raise NotImplementedError("missing table name in HBaseModel meta class")
-        return conn.table(name=cls.Meta.table_name, use_prefix=None)
+        if settings.TESTING:
+            return "test_{}".format(cls.Meta.table_name)
+        return cls.Meta.table_name
+
+    @classmethod
+    def drop_table(cls):
+        if not settings.TESTING:
+            raise Exception("you can not drop table in PRO environment")
+        conn = HBaseClient.get_connection()
+        conn.delete_table(cls.get_table_name(), True)
+
+    @classmethod
+    def create_table(cls):
+        if not settings.TESTING:
+            raise Exception("you can not create table in PRO environment")
+        conn = HBaseClient.get_connection()
+        tables = [table.decode('UTF-8') for table in conn.tables]
+        if cls.get_table_name() in tables:
+            return
+        column_families = {
+            field.column_family: dict()
+            for key, field in cls.get_field_hash().items()
+            if field.column_family is not None
+        }
+
+        conn.create_table(cls.get_table_name(), column_families)
+
+
 
     @classmethod
     def get_field_hash(cls):
@@ -113,12 +146,12 @@ class HBaseModel:
     @classmethod
     def serialize_row_data(cls, data):
         row_data = {}
-        for key, field in cls.get_field_hash():
+        for key, field in cls.get_field_hash().items():
             if field.column_family:
                 value = data.get(key)
                 if value is None:
                     continue
-                column_key = f"{field.column_family} {key}"
+                column_key = f"{field.column_family}:{key}"
                 column_value = cls.serialize_field(field, value)
                 row_data[column_key] = column_value
         return row_data

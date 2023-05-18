@@ -8,7 +8,7 @@ from utils.time_constants import ONE_HOUR
 
 @shared_task(time_limit=ONE_HOUR, routing_key='default')
 def fanout_newsfeed_main_task(tweet_id):
-    tweet = Tweet.objects.filter(id=tweet_id)
+    tweet = Tweet.objects.get(id=tweet_id)
     # 将推给自己的 Newsfeed 率先创建，确保自己能最快看到
     NewsFeed.objects.create(user_id=tweet.user_id, tweet_id=tweet_id)
     # 获得所有的 follower ids，按照 batch size 拆分开
@@ -21,7 +21,7 @@ def fanout_newsfeed_main_task(tweet_id):
 
     return "{} newsfeeds are going to be fanout, {} batched are created".format(
         len(followers_id),
-        len(followers_id) // FANOUT_BATCH_SIZE + 1
+        (len(followers_id) - 1) // FANOUT_BATCH_SIZE + 1,
     )
 
 

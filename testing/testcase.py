@@ -10,11 +10,30 @@ from newsfeeds.models import NewsFeed
 from rest_framework.test import APIClient
 from tweets.models import Tweet
 from utils.redis_client import RedisClient
-
-
+from django_hbase.models import HBaseModel
 
 
 class TestCase(DjangoTestCase):
+    hbase_tables_created = False
+
+    def setUp(self):
+        self.clear_cache()
+        self.hbase_tables_created = True
+        try:
+            for hbase_model_class in HBaseModel.__subclasses__():
+                hbase_model_class.create_table()
+        except Exception:
+            self.tear_down()
+            raise
+
+    def tear_down(self):
+        if not self.hbase_tables_created:
+            return
+        for hbase_model_class in HBaseModel.__subclasses__():
+            hbase_model_class.drop_table()
+
+
+
     def clear_cache(self):
         caches['testing'].clear()
         RedisClient.clear()
