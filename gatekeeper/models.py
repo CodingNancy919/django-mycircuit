@@ -1,7 +1,7 @@
 from utils.redis_helper import RedisClient
 
 
-class GateKeeper(object):
+class GateKeeper:
 
     @classmethod
     def get(cls, gk_name):
@@ -15,8 +15,8 @@ class GateKeeper(object):
 
         redis_hash = conn.hgetall(name)
         return {
-                'percentage': int(redis_hash.get('percentage', 0)),
-                'description': str(redis_hash.get('description' ''))
+                'percentage': int(redis_hash.get(b'percentage', b'0')),
+                'description': str(redis_hash.get(b'description' b''))
             }
 
     @classmethod

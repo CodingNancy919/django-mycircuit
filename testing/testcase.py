@@ -11,6 +11,8 @@ from rest_framework.test import APIClient
 from tweets.models import Tweet
 from utils.redis_client import RedisClient
 from django_hbase.models import HBaseModel
+from friendship.services import FriendshipService
+from gatekeeper.models import GateKeeper
 
 
 class TestCase(DjangoTestCase):
@@ -32,11 +34,11 @@ class TestCase(DjangoTestCase):
         for hbase_model_class in HBaseModel.__subclasses__():
             hbase_model_class.drop_table()
 
-    def test_happybase(self):
-        from django.conf import settings
-        import happybase
-        conn = happybase.Connection("192.168.33.10")
-        conn.tables()
+    # def test_happybase(self):
+    #     from django.conf import settings
+    #     import happybase
+    #     conn = happybase.Connection("192.168.33.10")
+    #     conn.tables()
 
     def clear_cache(self):
         caches['testing'].clear()
@@ -64,7 +66,7 @@ class TestCase(DjangoTestCase):
         return Tweet.objects.create(user=user, content=content)
 
     def create_friendship(self, from_user, to_user):
-        return Friendship.objects.create(from_user=from_user, to_user=to_user)
+        return FriendshipService.follow(from_user_id=from_user.id, to_user_id=to_user.id)
 
     def create_newsfeed(self, user, tweet):
         return NewsFeed.objects.create(user=user, tweet=tweet)

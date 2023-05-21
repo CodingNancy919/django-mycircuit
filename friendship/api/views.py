@@ -15,6 +15,9 @@ from friendship.api.serializers import (
 )
 from friendship.api.pagination import FriendshipPagination
 from friendship.services import FriendshipService
+from utils.paginations import EndlessPagination
+from gatekeeper.models import GateKeeper
+from friendship.hbase_models import HBaseFollowing, HBaseFollowers
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
@@ -26,7 +29,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipSerializerForCreate
     queryset = User.objects.all()
     # 一般来说，不同的 views 所需要的 pagination 规则肯定是不同的，因此一般都需要自定义
-    pagination_class = FriendshipPagination
+    pagination_class = EndlessPagination
 
 
 # 另一种方法是 /api/friendship/2?action=followers /api/friendship/2?action=following
@@ -35,25 +38,32 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 #         if action == 'followers':
 #             ...
 
+
     @action(methods=['GET'], detail=True, permission_classes=[AllowAny])
     @method_decorator(ratelimit(key='user_or_ip', rate='3/s', method='GET', block=True))
     def followers(self, request, pk):
-        followers = Friendship.objects.filter(
-            to_user_id=pk
-        ).order_by('-created_at')
-        page = self.paginate_queryset(followers)
+        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            followers = Friendship.objects.filter(
+                to_user_id=pk
+            ).order_by('-created_at')
+            page = self.paginate_queryset(followers)
+        else:
+            page = self.paginator.paginate_hbase(HBaseFollowers, (pk,), request)
         serializer = FollowerSerializer(page, many=True, context={'request': request})
-        return self.get_paginated_response(serializer.data)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @action(methods=['GET'], detail=True, permission_classes=[AllowAny])
     @method_decorator(ratelimit(key='user_or_ip', rate='3/s', method='GET', block=True))
     def following(self, request, pk):
-        followings = Friendship.objects.filter(
-            from_user_id=pk
-        ).order_by('-created_at')
-        page = self.paginate_queryset(followings)
+        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            followings = Friendship.objects.filter(
+                from_user_id=pk
+            ).order_by('-created_at')
+            page = self.paginate_queryset(followings)
+        else:
+            page = self.paginator.paginate_hbase(HBaseFollowing, (pk,), request)
         serializer = FollowingSerializer(page, many=True, context={'request': request})
-        return self.get_paginated_response(serializer.data)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @action(methods=['POST'], detail=True, permission_classes=[IsAuthenticated])
     @method_decorator(ratelimit(key='user', rate='10/s', method='POST', block=True))
@@ -68,7 +78,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         })
         # 特殊判断重复 follow 的情况（比如前端猛点好多少次 follow)
         # 静默处理，不报错，因为这类重复操作因为网络延迟的原因会比较多，没必要当做错误处理
-        if Friendship.objects.filter(from_user_id=request.user.id, to_user_id=pk).exists():
+        if FriendshipService.has_follow(from_user_id=request.user.id, to_user_id=int(pk)):
             return Response({
                 'Success': True,
                 'duplicate': True,
@@ -108,10 +118,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
                 'errors': serializer.errors,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        deleted, _ = Friendship.objects.filter(
-            from_user_id=request.user.id,
-            to_user_id=pk
-        ).delete()
+        deleted = FriendshipService.unfollow(from_user_id=request.user.id, to_user_id=int(pk))
 
         return Response(data={'Success': True, 'deleted': deleted})
 

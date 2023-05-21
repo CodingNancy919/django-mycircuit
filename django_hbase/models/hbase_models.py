@@ -55,8 +55,6 @@ class HBaseModel:
 
         conn.create_table(cls.get_table_name(), column_families)
 
-
-
     @classmethod
     def get_field_hash(cls):
         field_hash = {}
@@ -180,6 +178,12 @@ class HBaseModel:
         row_key = cls.serialize_row_key(kwargs)
         row = table.row(row_key)
         return cls.init_from_row(row_key, row)
+
+    @classmethod
+    def delete(cls, **kwargs):
+        table = cls.get_table()
+        row_key = cls.serialize_row_key(kwargs)
+        table.delete(row_key)
 
     @classmethod
     def init_from_row(cls, row_key, row_data):
