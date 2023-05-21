@@ -1,13 +1,18 @@
 from twitter.cache import USERPROFILE_PATTERN
-from django.contrib.auth.models import User
 from django.utils.cache import caches
 from django.conf import settings
 from accounts.models import UserProfile
+from django.contrib.auth.models import User
+from utils.memcached_helper import MemcachedHelper
 
 cache = caches['default'] if settings.TESTING else caches['testing']
 
 
 class UserProfileService(object):
+    @classmethod
+    def get_user_by_id(cls, user_id):
+        return MemcachedHelper.get_object_from_cache(User, user_id)
+
     @classmethod
     def get_userprofile_from_cache(cls, user_id):
         key = USERPROFILE_PATTERN.format(user_id=user_id)
